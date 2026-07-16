@@ -1,43 +1,48 @@
-# Sentiment Analyzer — B.Tech AI/ML Project
+# 🧠 SentimentSense
 
-Sentiment classification app (TF-IDF + Logistic Regression, trained on SST-2 via Hugging Face Datasets).
-Model weights are embedded in `src/App.jsx` — all inference runs client-side, no backend required.
+**SentimentSense** is a lightweight, edge-AI web application that performs binary sentiment analysis (Positive/Negative) on text. Instead of relying on cloud APIs or backend servers, this project runs a pre-trained Machine Learning model directly in the browser using JavaScript.
 
-## Run locally
+## 🚀 Overview
 
-```
-npm install
-npm run dev
-```
+This project bridges the gap between traditional machine learning and modern web development. By training a model in Python and exporting its learned weights and vocabulary into a static JSON format, the React frontend can reconstruct the inference pipeline. This allows for instant, offline, and cost-free text classification.
 
-Opens at `http://localhost:5173`.
+- **Dataset:** SST-2 (Stanford Sentiment Treebank), sourced from Hugging Face Datasets.
+- **Accuracy:** ~78.47% on the held-out test split.
+- **Architecture:** TF-IDF Vectorization (Unigrams & Bigrams) + Logistic Regression.
 
-## Build for production
+## ✨ Key Features
 
-```
-npm run build
-```
+- **Zero-Latency Edge Inference:** No API calls, no loading spinners, and no backend hosting costs. The math runs entirely on the client's device.
+- **Transparent AI:** The model uses a "white-box" Bag of Words approach. Users can see exactly which words contributed to the final probability score and by how much.
+- **Interactive UI:** Built with React and Vite, featuring a responsive, modern design to test the model dynamically.
 
-Output goes to `dist/`.
+## ⚙️ How It Works (The Pipeline)
 
-## Deploy — Vercel (recommended, easiest)
+1. **Text Preprocessing:** The input text is lowercased, and punctuation is stripped using regex tokenization.
+2. **Stop Word Removal:** Common, non-descriptive English words (like "the", "is", "at") are filtered out.
+3. **TF-IDF Vectorization:** The remaining words (and word pairs) are mapped against a learned vocabulary of 2,500 terms. Their Term Frequency-Inverse Document Frequency (TF-IDF) is calculated.
+4. **Logistic Regression:** The resulting mathematical vector is multiplied by the model's pre-trained coefficients (dot product).
+5. **Sigmoid Activation:** The raw score is passed through a Sigmoid function to output a clean probability percentage (0% to 100%).
 
-1. Push this folder to a GitHub repository.
-2. Go to [vercel.com](https://vercel.com), sign in with GitHub.
-3. Click **Add New → Project**, select this repo.
-4. Framework preset: Vite (auto-detected). Leave build settings as default.
-5. Click **Deploy**. Live in about a minute at `your-project.vercel.app`.
+## 🛠️ Tech Stack
 
-## Deploy — Netlify (alternative)
+- **Frontend Framework:** React, Vite
+- **Styling & Icons:** CSS (embedded), Lucide React
+- **ML Training (Offline):** Python 3, scikit-learn, Hugging Face Datasets
 
-1. Push this folder to GitHub.
-2. Go to [netlify.com](https://netlify.com) → **Add new site → Import an existing project**.
-3. Connect the repo. Build command: `npm run build`. Publish directory: `dist`.
-4. Deploy.
+## 🚧 Limitations & Future Scope
 
-## Deploy — GitHub Pages
+While highly optimized for speed and size, this linear "Bag of Words" approach has known linguistic limitations:
 
-1. Install the GH Pages helper: `npm install --save-dev gh-pages`
-2. Add to `package.json` scripts: `"deploy": "vite build && gh-pages -d dist"`
-3. In `vite.config.js`, add `base: "/your-repo-name/"` inside `defineConfig({ ... })`.
-4. Run `npm run deploy`. Site goes live at `https://your-username.github.io/your-repo-name/`.
+- **Context Blindness:** The model ignores sentence structure, meaning it struggles with sarcasm.
+- **Long-Range Negation:** Modifiers placed far away from their target words (e.g., "I really cannot say it was good") can confuse the classifier.
+- **Future Work:** Compare this baseline implementation against an in-browser Transformer model (like DistilBERT using ONNX Runtime Web) to evaluate the trade-off between semantic accuracy and computational payload.
+
+## 💻 Local Setup
+
+To run this project locally on your machine:
+
+1. Clone the repository:
+   ```bash
+   git clone [https://github.com/yourusername/sentimentsense.git](https://github.com/yourusername/sentimentsense.git)
+   ```
