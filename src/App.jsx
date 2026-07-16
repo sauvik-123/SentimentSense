@@ -1,12 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import {
-  Home,
   Sparkles,
   Database,
-  Info,
+  GitBranch,
+  BarChart3,
+  PlayCircle,
   ArrowRight,
-  TrendingUp,
+  Github,
   CheckCircle2,
+  Target,
+  Layers,
 } from 'lucide-react';
 
 const MODEL_DATA = {
@@ -3490,7 +3493,7 @@ function classify(text) {
     label: prob >= 0.5 ? 'Positive' : 'Negative',
     probability: prob,
     matchedTerms: matchedTerms.length,
-    topFeatures: contributions.slice(0, 4),
+    topFeatures: contributions.slice(0, 5),
     hasSignal: matchedTerms.length > 0,
   };
 }
@@ -3499,26 +3502,46 @@ const SAMPLE_TEXTS = [
   'A stunning, emotionally resonant film that lingers long after the credits roll.',
   'Painfully slow, poorly acted, and a complete waste of two hours.',
   'One of the most delightful and inventive comedies of the year.',
+  'The visuals are impressive but the plot never comes together.',
 ];
 
-const TABS = [
-  { id: 'home', label: 'Home', icon: Home },
-  { id: 'analyze', label: 'Analyze', icon: Sparkles },
-  { id: 'model', label: 'Model', icon: Database },
-  { id: 'about', label: 'About', icon: Info },
+const NAV_ITEMS = [
+  { id: 'home', label: 'Home' },
+  { id: 'about', label: 'About' },
+  { id: 'dataset', label: 'Dataset' },
+  { id: 'model', label: 'Model' },
+  { id: 'results', label: 'Results' },
+  { id: 'demo', label: 'Live Demo' },
 ];
 
-function StatChip({ value, label }) {
+function Footer({ go }) {
   return (
-    <div className="stat-chip">
-      <div className="stat-chip-value">{value}</div>
-      <div className="stat-chip-label">{label}</div>
-    </div>
+    <footer className="site-footer">
+      <div className="wrap footer-inner">
+        <div>
+          <div className="footer-brand">SentimentSense</div>
+          <p className="footer-tag">A B.Tech AI/ML project — GNIT, Kolkata</p>
+        </div>
+        <div className="footer-links">
+          {NAV_ITEMS.map(n => (
+            <span
+              key={n.id}
+              onClick={() => go(n.id)}>
+              {n.label}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="wrap footer-bottom">
+        Built with TF-IDF · Logistic Regression · SST-2 (Hugging Face Datasets)
+        · React
+      </div>
+    </footer>
   );
 }
 
-export default function SentimentApp() {
-  const [tab, setTab] = useState('home');
+export default function SentimentWebsite() {
+  const [page, setPage] = useState('home');
   const [text, setText] = useState('');
   const [result, setResult] = useState(null);
   const [analyzing, setAnalyzing] = useState(false);
@@ -3538,6 +3561,11 @@ export default function SentimentApp() {
     };
   }, []);
 
+  const go = p => {
+    setPage(p);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const runAnalysis = inputText => {
     const t = (inputText ?? text).trim();
     if (!t) return;
@@ -3547,551 +3575,690 @@ export default function SentimentApp() {
       setAnalyzing(false);
     }, 300);
   };
-
   const useSample = s => {
     setText(s);
     runAnalysis(s);
   };
 
-  const goAnalyze = () => setTab('analyze');
-
   return (
-    <div className="phone-shell">
+    <div className="site">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
         * { box-sizing: border-box; }
         html, body { margin: 0; }
-        .phone-shell {
-          min-height: 100vh;
-          background: #E9E4D6;
-          display: flex;
-          justify-content: center;
-          align-items: flex-start;
-          font-family: 'Inter', sans-serif;
-          padding: 18px 0;
+        .site { background: #FAF8F3; color: #1B2439; font-family: 'Inter', sans-serif; min-height: 100vh; }
+        .wrap { max-width: 1040px; margin: 0 auto; padding: 0 28px; }
+
+        /* Navbar */
+        .navbar {
+          position: sticky; top: 0; z-index: 50;
+          background: rgba(250,248,243,0.92);
+          backdrop-filter: blur(8px);
+          border-bottom: 1px solid #E4DECB;
         }
-        .app-frame {
-          width: 100%;
-          max-width: 420px;
-          min-height: 100vh;
-          background: #FAF8F3;
-          display: flex;
-          flex-direction: column;
+        .navbar-inner { display: flex; align-items: center; justify-content: space-between; height: 62px; }
+        .brand { display: flex; align-items: center; gap: 8px; font-family: 'Source Serif 4', serif; font-weight: 700; font-size: 18px; cursor: pointer; }
+        .brand-dot { width: 8px; height: 8px; border-radius: 50%; background: #B98900; }
+        .nav-links { display: flex; gap: 4px; }
+        .nav-link {
+          font-size: 13.5px; font-weight: 500; color: #6B7280;
+          padding: 8px 14px; border-radius: 999px; cursor: pointer; transition: all 0.15s ease;
+        }
+        .nav-link:hover { color: #1B2439; }
+        .nav-link.active { background: #1B2439; color: #FFFFFF; }
+        @media (max-width: 720px) { .nav-links { display: none; } }
+        .nav-mobile-select { display: none; }
+        @media (max-width: 720px) {
+          .nav-mobile-select { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 6px 10px; border-radius: 8px; border: 1px solid #E4DECB; background: #fff; }
+        }
+
+        /* Hero shared */
+        .hero {
+          padding: 64px 0 56px;
+          border-bottom: 1px solid #E4DECB;
           position: relative;
-          box-shadow: 0 0 0 1px #D9D2BE;
+          overflow: hidden;
         }
-        @media (min-width: 460px) {
-          .phone-shell { padding: 28px 0; }
-          .app-frame { min-height: 850px; border-radius: 28px; overflow: hidden; box-shadow: 0 20px 60px rgba(27,36,57,0.25); }
+        .hero-blob {
+          position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.35; z-index: 0;
         }
+        .hero-content { position: relative; z-index: 1; }
+        .eyebrow {
+          font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.16em;
+          text-transform: uppercase; color: #1F6F78; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+        }
+        h1.page-title {
+          font-family: 'Source Serif 4', serif; font-weight: 700; font-size: clamp(30px, 5vw, 48px);
+          line-height: 1.1; margin: 0 0 18px; letter-spacing: -0.01em; max-width: 700px;
+        }
+        p.lede { font-size: 16px; line-height: 1.7; color: #4B5563; max-width: 600px; margin: 0 0 28px; }
 
-        .app-bar {
-          background: #1B2439;
-          color: #F4F1E8;
-          padding: 18px 20px 16px;
-          flex-shrink: 0;
+        .btn-row { display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn-primary, .btn-secondary {
+          display: inline-flex; align-items: center; gap: 7px;
+          font-weight: 600; font-size: 14px; padding: 12px 22px; border-radius: 10px; cursor: pointer; border: none;
         }
-        .app-bar-eyebrow {
-          font-family: 'IBM Plex Mono', monospace;
-          font-size: 10px;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #7FBFC2;
-          margin-bottom: 4px;
-        }
-        .app-bar-title {
-          font-family: 'Source Serif 4', serif;
-          font-weight: 700;
-          font-size: 19px;
-        }
+        .btn-primary { background: #1B2439; color: #fff; }
+        .btn-primary:hover { background: #26314D; }
+        .btn-secondary { background: #fff; color: #1B2439; border: 1px solid #D9D2BE; }
+        .btn-secondary:hover { border-color: #1B2439; }
 
-        .screen {
-          flex: 1;
-          overflow-y: auto;
-          padding: 20px 20px 90px;
-        }
+        section.page-section { padding: 56px 0; }
+        section.page-section.tight { padding: 40px 0; }
+        h2.section-title { font-family: 'Source Serif 4', serif; font-weight: 600; font-size: 26px; margin: 0 0 10px; }
+        p.section-lede { font-size: 14.5px; color: #6B7280; max-width: 620px; line-height: 1.65; margin-bottom: 28px; }
 
-        /* Home */
-        .hero-card {
-          background: linear-gradient(135deg, #1B2439, #26314D);
-          color: #F4F1E8;
-          border-radius: 16px;
-          padding: 22px;
-          margin-bottom: 18px;
-        }
-        .hero-card h2 {
-          font-family: 'Source Serif 4', serif;
-          font-size: 21px;
-          line-height: 1.3;
-          margin: 0 0 8px;
-        }
-        .hero-card p {
-          font-size: 13px;
-          color: #C9CEDD;
-          line-height: 1.55;
-          margin: 0 0 18px;
-        }
-        .cta-btn {
-          background: #B98900;
-          color: #1B2439;
-          border: none;
-          font-weight: 700;
-          font-size: 13.5px;
-          padding: 11px 18px;
-          border-radius: 10px;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          cursor: pointer;
-        }
-        .cta-btn:focus-visible { outline: 2px solid #7FBFC2; outline-offset: 2px; }
+        /* Home page specific */
+        .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 40px; }
+        @media (max-width: 700px) { .stat-strip { grid-template-columns: repeat(2, 1fr); } }
+        .stat-box { background: #FFFFFF; border: 1px solid #E4DECB; border-radius: 12px; padding: 20px 18px; }
+        .stat-num { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 600; color: #1F6F78; }
+        .stat-label { font-size: 12px; color: #6B7280; margin-top: 6px; }
 
-        .stat-row {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 10px;
-          margin-bottom: 18px;
+        .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 8px; }
+        @media (max-width: 800px) { .feature-grid { grid-template-columns: 1fr; } }
+        .feature-card {
+          background: #FFFFFF; border: 1px solid #E4DECB; border-radius: 14px; padding: 24px;
+          cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease;
         }
-        .stat-chip {
-          background: #FFFFFF;
-          border: 1px solid #E4DECB;
-          border-radius: 12px;
-          padding: 12px 8px;
-          text-align: center;
+        .feature-card:hover { transform: translateY(-3px); border-color: #1F6F78; }
+        .feature-icon {
+          width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+          background: #1B2439; color: #7FBFC2; margin-bottom: 14px;
         }
-        .stat-chip-value {
-          font-family: 'IBM Plex Mono', monospace;
-          font-weight: 600;
-          font-size: 16px;
-          color: #1F6F78;
-        }
-        .stat-chip-label { font-size: 10px; color: #6B7280; margin-top: 3px; }
+        .feature-title { font-weight: 600; font-size: 15.5px; margin-bottom: 6px; }
+        .feature-desc { font-size: 13px; color: #6B7280; line-height: 1.55; }
+        .feature-link { font-size: 12.5px; color: #1F6F78; font-weight: 600; margin-top: 12px; display: flex; align-items: center; gap: 4px; }
 
-        .info-card {
-          background: #FFFFFF;
-          border: 1px solid #E4DECB;
-          border-radius: 14px;
-          padding: 16px 18px;
-          margin-bottom: 14px;
-        }
-        .info-card-title {
-          font-weight: 600;
-          font-size: 14px;
-          margin-bottom: 6px;
-          color: #1B2439;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-        .info-card p { font-size: 12.5px; color: #6B7280; line-height: 1.55; margin: 0; }
+        /* About page */
+        .about-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 40px; align-items: start; }
+        @media (max-width: 800px) { .about-grid { grid-template-columns: 1fr; } }
+        ul.obj-list { margin: 0; padding: 0; list-style: none; }
+        ul.obj-list li { display: flex; gap: 14px; padding: 14px 0; border-top: 1px solid #E4DECB; font-size: 14.5px; line-height: 1.55; color: #2A3148; }
+        ul.obj-list li:first-child { border-top: none; }
+        .obj-num { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #B98900; font-weight: 600; flex-shrink: 0; width: 22px; }
+        .side-card { background: #1B2439; color: #F4F1E8; border-radius: 14px; padding: 24px; }
+        .side-card-title { font-family: 'Source Serif 4', serif; font-size: 17px; font-weight: 600; margin-bottom: 12px; }
+        .side-card p { font-size: 13px; color: #C9CEDD; line-height: 1.6; margin: 0 0 14px; }
+        .badge-row { display: flex; flex-wrap: wrap; gap: 7px; }
+        .tech-badge { font-family: 'IBM Plex Mono', monospace; font-size: 11px; border: 1px solid #3A4463; padding: 5px 11px; border-radius: 999px; color: #C9CEDD; }
 
-        /* Analyze */
+        /* Dataset page */
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 22px 0; }
+        @media (max-width: 700px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+        .balance-bar { display: flex; height: 16px; border-radius: 8px; overflow: hidden; margin: 18px 0 10px; }
+        .balance-legend { display: flex; gap: 24px; font-size: 13.5px; color: #4B5563; }
+        .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+        .sample-quote { background: #FFFFFF; border: 1px solid #E4DECB; border-left: 3px solid #1F6F78; border-radius: 8px; padding: 14px 18px; font-size: 13.5px; color: #3A4256; margin-top: 12px; font-style: italic; }
+
+        /* Model page pipeline */
+        .pipeline { margin-top: 24px; }
+        .pipe-step { display: flex; gap: 20px; padding: 22px 0; border-top: 1px solid #E4DECB; }
+        .pipe-step:first-child { border-top: none; }
+        .pipe-num { font-family: 'Source Serif 4', serif; font-size: 26px; font-weight: 700; color: #E4DECB; width: 44px; flex-shrink: 0; }
+        .pipe-title { font-weight: 600; font-size: 16px; margin-bottom: 5px; color: #1B2439; }
+        .pipe-desc { font-size: 13.5px; color: #6B7280; line-height: 1.6; max-width: 560px; }
+        .pipe-tag { display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; background: #EEF2F0; color: #1F6F78; padding: 3px 9px; border-radius: 999px; margin-top: 8px; }
+
+        /* Results page */
+        .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 24px 0 36px; }
+        @media (max-width: 700px) { .metric-grid { grid-template-columns: repeat(2, 1fr); } }
+        .metric-card { background: #1B2439; border-radius: 12px; padding: 20px 16px; text-align: center; }
+        .metric-value { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 600; }
+        .metric-label { font-size: 11.5px; color: #9AA3BD; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .cm-wrap { display: flex; gap: 36px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+        .cm-grid { display: grid; grid-template-columns: auto repeat(2, 100px); grid-template-rows: auto repeat(2, 100px); gap: 3px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+        .cm-cell { display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 600; font-size: 18px; }
+        .cm-label { font-size: 11.5px; color: #6B7280; display: flex; align-items: center; justify-content: center; text-align: center; padding: 4px; }
+        .cm-note { font-size: 13.5px; color: #6B7280; max-width: 280px; line-height: 1.65; }
+        .limits-box { background: #FFF9EC; border: 1px solid #EAD9A0; border-radius: 10px; padding: 16px 18px; margin-top: 24px; font-size: 13px; color: #6B5A22; line-height: 1.6; }
+
+        /* Live demo page */
+        .demo-shell { background: #FFFFFF; border: 1px solid #E4DECB; border-radius: 16px; padding: 28px; margin-top: 24px; }
         textarea {
-          width: 100%;
-          min-height: 100px;
-          border: 1px solid #E4DECB;
-          border-radius: 10px;
-          padding: 12px 14px;
-          font-family: 'Inter', sans-serif;
-          font-size: 14px;
-          color: #1B2439;
-          resize: vertical;
-          outline: none;
-          background: #FFFFFF;
+          width: 100%; min-height: 120px; border: 1px solid #E4DECB; border-radius: 10px; padding: 14px 16px;
+          font-family: 'Inter', sans-serif; font-size: 15px; color: #1B2439; resize: vertical; outline: none;
         }
         textarea:focus { border-color: #1F6F78; }
-        .sample-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 14px; }
-        .sample-chip {
-          font-family: 'IBM Plex Mono', monospace;
-          font-size: 10.5px;
-          background: #F1EFE6;
-          border: 1px solid #E4DECB;
-          color: #4B5563;
-          padding: 5px 10px;
-          border-radius: 999px;
-          cursor: pointer;
-        }
-        button.run-btn {
-          width: 100%;
-          background: #1B2439;
-          color: #FFFFFF;
-          border: none;
-          font-weight: 600;
-          font-size: 14px;
-          padding: 13px;
-          border-radius: 10px;
-          cursor: pointer;
-        }
+        .demo-toolbar { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; flex-wrap: wrap; gap: 12px; }
+        .sample-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .sample-chip { font-family: 'IBM Plex Mono', monospace; font-size: 11px; background: #F1EFE6; border: 1px solid #E4DECB; color: #4B5563; padding: 6px 11px; border-radius: 999px; cursor: pointer; }
+        .sample-chip:hover { border-color: #1F6F78; color: #1F6F78; }
+        button.run-btn { background: #1B2439; color: #fff; border: none; font-weight: 600; font-size: 14px; padding: 12px 26px; border-radius: 10px; cursor: pointer; }
         button.run-btn:disabled { opacity: 0.5; }
-        button.run-btn:focus-visible { outline: 2px solid #1F6F78; outline-offset: 2px; }
-
-        .result-card {
-          margin-top: 18px;
-          background: #FFFFFF;
-          border: 1px solid #E4DECB;
-          border-radius: 14px;
-          padding: 18px;
-        }
-        .result-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
-        .result-label { font-family: 'Source Serif 4', serif; font-size: 21px; font-weight: 700; }
-        .result-prob { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #6B7280; }
-        .prob-bar { height: 7px; background: #EEECE1; border-radius: 5px; overflow: hidden; margin-bottom: 14px; }
+        .result-box { margin-top: 24px; border-top: 1px solid #E4DECB; padding-top: 22px; }
+        .result-top { display: flex; align-items: baseline; gap: 14px; margin-bottom: 12px; }
+        .result-label { font-family: 'Source Serif 4', serif; font-size: 26px; font-weight: 700; }
+        .result-prob { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6B7280; }
+        .prob-bar { height: 9px; background: #EEECE1; border-radius: 5px; overflow: hidden; margin-bottom: 18px; max-width: 360px; }
         .prob-fill { height: 100%; border-radius: 5px; transition: width 0.4s ease; }
-        .feature-list { display: flex; flex-wrap: wrap; gap: 6px; }
-        .feature-chip {
-          font-family: 'IBM Plex Mono', monospace;
-          font-size: 10.5px;
-          padding: 4px 9px;
-          border-radius: 999px;
-          color: #FFFFFF;
-        }
-        .no-signal { font-size: 12px; color: #9CA3AF; font-style: italic; }
+        .feature-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .feature-chip { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; padding: 5px 11px; border-radius: 999px; color: #fff; }
+        .no-signal { font-size: 13px; color: #9CA3AF; font-style: italic; }
+        .demo-note { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #6B7280; margin-top: 20px; }
 
-        /* Model screen */
-        .balance-bar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; margin: 10px 0 8px; }
-        .balance-legend { display: flex; gap: 14px; font-size: 11.5px; color: #4B5563; flex-wrap: wrap; }
-        .legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
-
-        .pipe-step { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid #E4DECB; }
-        .pipe-step:first-child { border-top: none; }
-        .pipe-num {
-          font-family: 'Source Serif 4', serif;
-          font-size: 17px;
-          font-weight: 700;
-          color: #D9D2BE;
-          width: 26px;
-          flex-shrink: 0;
-        }
-        .pipe-title { font-weight: 600; font-size: 13px; color: #1B2439; margin-bottom: 2px; }
-        .pipe-desc { font-size: 11.5px; color: #6B7280; line-height: 1.5; }
-
-        .metric-grid-mini { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0 16px; }
-        .metric-mini {
-          background: #1B2439;
-          border-radius: 10px;
-          padding: 14px 10px;
-          text-align: center;
-        }
-        .metric-mini-value { font-family: 'IBM Plex Mono', monospace; font-size: 19px; font-weight: 600; color: #7FBFC2; }
-        .metric-mini-label { font-size: 10px; color: #9AA3BD; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
-
-        .cm-grid {
-          display: grid;
-          grid-template-columns: auto repeat(2, 1fr);
-          grid-template-rows: auto repeat(2, 60px);
-          gap: 2px;
-          font-family: 'IBM Plex Mono', monospace;
-          font-size: 11px;
-          margin-top: 10px;
-        }
-        .cm-cell { display: flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: 600; font-size: 15px; }
-        .cm-label { font-size: 9.5px; color: #6B7280; display: flex; align-items: center; justify-content: center; text-align: center; padding: 2px; }
-
-        /* About */
-        .badge-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-        .tech-badge {
-          font-family: 'IBM Plex Mono', monospace;
-          font-size: 10.5px;
-          border: 1px solid #E4DECB;
-          background: #FFFFFF;
-          padding: 5px 10px;
-          border-radius: 999px;
-          color: #3A4256;
-        }
-
-        /* Bottom nav */
-        .bottom-nav {
-          position: absolute;
-          bottom: 0; left: 0; right: 0;
-          background: #FFFFFF;
-          border-top: 1px solid #E4DECB;
-          display: flex;
-          padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
-        }
-        .nav-btn {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 3px;
-          background: none;
-          border: none;
-          padding: 6px 2px;
-          cursor: pointer;
-          color: #9CA3AF;
-        }
-        .nav-btn.active { color: #1F6F78; }
-        .nav-btn span { font-size: 10px; font-weight: 500; }
-        .nav-btn:focus-visible { outline: 2px solid #1F6F78; outline-offset: 1px; border-radius: 6px; }
+        /* Footer */
+        .site-footer { background: #1B2439; color: #C9CEDD; padding: 40px 0 0; margin-top: 20px; }
+        .footer-inner { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px; padding-bottom: 28px; }
+        .footer-brand { font-family: 'Source Serif 4', serif; font-weight: 700; font-size: 17px; color: #F4F1E8; }
+        .footer-tag { font-size: 12.5px; color: #8891AC; margin-top: 4px; }
+        .footer-links { display: flex; gap: 18px; flex-wrap: wrap; }
+        .footer-links span { font-size: 13px; color: #C9CEDD; cursor: pointer; }
+        .footer-links span:hover { color: #7FBFC2; }
+        .footer-bottom { border-top: 1px solid #2E3A5C; padding: 16px 0; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E7797; }
       `}</style>
 
-      <div className="app-frame">
-        <div className="app-bar">
-          <div className="app-bar-eyebrow">GNIT · CSE (AI/ML)</div>
-          <div className="app-bar-title">
-            {tab === 'home' && 'SentimentSense'}
-            {tab === 'analyze' && 'Analyze Text'}
-            {tab === 'model' && 'Model Details'}
-            {tab === 'about' && 'About Project'}
+      <nav className="navbar">
+        <div className="wrap navbar-inner">
+          <div
+            className="brand"
+            onClick={() => go('home')}>
+            <span className="brand-dot" />
+            SentimentSense
           </div>
+          <div className="nav-links">
+            {NAV_ITEMS.map(n => (
+              <span
+                key={n.id}
+                className={`nav-link ${page === n.id ? 'active' : ''}`}
+                onClick={() => go(n.id)}>
+                {n.label}
+              </span>
+            ))}
+          </div>
+          <select
+            className="nav-mobile-select"
+            value={page}
+            onChange={e => go(e.target.value)}>
+            {NAV_ITEMS.map(n => (
+              <option
+                key={n.id}
+                value={n.id}>
+                {n.label}
+              </option>
+            ))}
+          </select>
         </div>
+      </nav>
 
-        <div className="screen">
-          {tab === 'home' && (
-            <>
-              <div className="hero-card">
-                <h2>
-                  Real-time sentiment classification, trained from scratch.
-                </h2>
-                <p>
-                  TF-IDF + Logistic Regression, trained on the SST-2 dataset via
-                  Hugging Face Datasets. Runs fully on-device — no server
-                  required.
-                </p>
+      {page === 'home' && (
+        <>
+          <div className="hero">
+            <div
+              className="hero-blob"
+              style={{
+                width: 340,
+                height: 340,
+                background: '#7FBFC2',
+                top: -100,
+                right: -80,
+              }}
+            />
+            <div className="wrap hero-content">
+              <div className="eyebrow">
+                <Sparkles size={13} /> B.Tech AI/ML Project · GNIT Kolkata
+              </div>
+              <h1 className="page-title">
+                Sentiment analysis, trained from real data and running live in
+                your browser.
+              </h1>
+              <p className="lede">
+                A TF-IDF + Logistic Regression classifier trained on the SST-2
+                movie review dataset (Hugging Face Datasets), evaluated
+                end-to-end, and deployed for instant, offline predictions.
+              </p>
+              <div className="btn-row">
                 <button
-                  className="cta-btn"
-                  onClick={goAnalyze}>
-                  Start Analyzing <ArrowRight size={15} />
+                  className="btn-primary"
+                  onClick={() => go('demo')}>
+                  <PlayCircle size={16} /> Try Live Demo
+                </button>
+                <button
+                  className="btn-secondary"
+                  onClick={() => go('dataset')}>
+                  Explore the Dataset
                 </button>
               </div>
-
-              <div className="stat-row">
-                <StatChip
-                  value={`${(MODEL_DATA.metrics.accuracy * 100).toFixed(0)}%`}
-                  label="Accuracy"
-                />
-                <StatChip
-                  value={MODEL_DATA.meta.trainSize.toLocaleString()}
-                  label="Train rows"
-                />
-                <StatChip
-                  value={MODEL_DATA.meta.vocabSize.toLocaleString()}
-                  label="Features"
-                />
-              </div>
-
-              <div className="info-card">
-                <div className="info-card-title">
-                  <Database size={15} /> Dataset
+              <div className="stat-strip">
+                <div className="stat-box">
+                  <div className="stat-num">
+                    {(MODEL_DATA.metrics.accuracy * 100).toFixed(1)}%
+                  </div>
+                  <div className="stat-label">Test Accuracy</div>
                 </div>
-                <p>
-                  Stanford Sentiment Treebank (SST-2), part of the GLUE
-                  benchmark, sourced via Hugging Face Datasets — movie review
-                  sentences labeled positive or negative.
-                </p>
-              </div>
-              <div className="info-card">
-                <div className="info-card-title">
-                  <TrendingUp size={15} /> Approach
+                <div className="stat-box">
+                  <div className="stat-num">
+                    {MODEL_DATA.meta.trainSize.toLocaleString()}
+                  </div>
+                  <div className="stat-label">Training Sentences</div>
                 </div>
-                <p>
-                  Text is vectorized with TF-IDF over unigrams and bigrams, then
-                  classified using a Logistic Regression model — a transparent,
-                  interpretable baseline suited to an academic setting.
-                </p>
-              </div>
-              <div className="info-card">
-                <div className="info-card-title">
-                  <CheckCircle2 size={15} /> On-device inference
+                <div className="stat-box">
+                  <div className="stat-num">
+                    {MODEL_DATA.meta.vocabSize.toLocaleString()}
+                  </div>
+                  <div className="stat-label">Vocabulary Features</div>
                 </div>
-                <p>
-                  The trained weights are embedded directly in this app, so
-                  predictions run instantly and work offline — no API calls
-                  involved.
-                </p>
+                <div className="stat-box">
+                  <div className="stat-num">0</div>
+                  <div className="stat-label">Server Calls Needed</div>
+                </div>
               </div>
-            </>
-          )}
+            </div>
+          </div>
 
-          {tab === 'analyze' && (
-            <>
-              <textarea
-                value={text}
-                onChange={e => setText(e.target.value)}
-                placeholder="Type a sentence to classify, e.g. a movie review..."
-              />
-              <div className="sample-row">
-                {SAMPLE_TEXTS.map((s, i) => (
+          <section className="page-section">
+            <div className="wrap">
+              <div className="eyebrow">Explore</div>
+              <h2 className="section-title">Everything behind the model</h2>
+              <p className="section-lede">
+                From raw dataset to deployed prediction — walk through each
+                stage of the pipeline.
+              </p>
+              <div className="feature-grid">
+                <div
+                  className="feature-card"
+                  onClick={() => go('dataset')}>
+                  <div className="feature-icon">
+                    <Database size={19} />
+                  </div>
+                  <div className="feature-title">The Dataset</div>
+                  <div className="feature-desc">
+                    SST-2 movie reviews, class balance, and preprocessing
+                    details.
+                  </div>
+                  <div className="feature-link">
+                    View dataset <ArrowRight size={13} />
+                  </div>
+                </div>
+                <div
+                  className="feature-card"
+                  onClick={() => go('model')}>
+                  <div className="feature-icon">
+                    <GitBranch size={19} />
+                  </div>
+                  <div className="feature-title">Model Pipeline</div>
+                  <div className="feature-desc">
+                    TF-IDF vectorization and Logistic Regression, step by step.
+                  </div>
+                  <div className="feature-link">
+                    View pipeline <ArrowRight size={13} />
+                  </div>
+                </div>
+                <div
+                  className="feature-card"
+                  onClick={() => go('results')}>
+                  <div className="feature-icon">
+                    <BarChart3 size={19} />
+                  </div>
+                  <div className="feature-title">Results</div>
+                  <div className="feature-desc">
+                    Accuracy, precision, recall, F1, and the confusion matrix.
+                  </div>
+                  <div className="feature-link">
+                    View results <ArrowRight size={13} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </>
+      )}
+
+      {page === 'about' && (
+        <>
+          <div className="hero">
+            <div
+              className="hero-blob"
+              style={{
+                width: 300,
+                height: 300,
+                background: '#B98900',
+                top: -80,
+                left: -60,
+              }}
+            />
+            <div className="wrap hero-content">
+              <div className="eyebrow">
+                <Target size={13} /> About the Project
+              </div>
+              <h1 className="page-title">Why this project exists</h1>
+              <p className="lede">
+                Manually reading through thousands of reviews doesn't scale.
+                This project automates sentiment classification end-to-end, from
+                a labeled benchmark dataset to a working, interactive
+                application.
+              </p>
+            </div>
+          </div>
+          <section className="page-section">
+            <div className="wrap about-grid">
+              <div>
+                <h2 className="section-title">Objectives</h2>
+                <ul className="obj-list">
+                  <li>
+                    <span className="obj-num">01</span>Acquire and preprocess a
+                    labeled benchmark dataset for binary sentiment
+                    classification.
+                  </li>
+                  <li>
+                    <span className="obj-num">02</span>Engineer text features
+                    using TF-IDF over unigrams and bigrams.
+                  </li>
+                  <li>
+                    <span className="obj-num">03</span>Train and evaluate a
+                    Logistic Regression classifier using standard metrics.
+                  </li>
+                  <li>
+                    <span className="obj-num">04</span>Deploy the trained model
+                    in an accessible, interactive web interface.
+                  </li>
+                  <li>
+                    <span className="obj-num">05</span>Demonstrate the full ML
+                    workflow: data → features → model → evaluation → deployment.
+                  </li>
+                </ul>
+              </div>
+              <div className="side-card">
+                <div className="side-card-title">Institution</div>
+                <p>
+                  Gurunanak Institute of Technology (GNIT), Kolkata — Department
+                  of Computer Science &amp; Engineering (AI/ML).
+                </p>
+                <div className="side-card-title">Tech Stack</div>
+                <div className="badge-row">
+                  <span className="tech-badge">Python 3</span>
+                  <span className="tech-badge">Hugging Face Datasets</span>
+                  <span className="tech-badge">scikit-learn</span>
+                  <span className="tech-badge">TF-IDF</span>
+                  <span className="tech-badge">Logistic Regression</span>
+                  <span className="tech-badge">React</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </>
+      )}
+
+      {page === 'dataset' && (
+        <>
+          <div className="hero">
+            <div
+              className="hero-blob"
+              style={{
+                width: 300,
+                height: 300,
+                background: '#2F7A4F',
+                top: -80,
+                right: -60,
+              }}
+            />
+            <div className="wrap hero-content">
+              <div className="eyebrow">
+                <Database size={13} /> Dataset
+              </div>
+              <h1 className="page-title">
+                SST-2 — Stanford Sentiment Treebank
+              </h1>
+              <p className="lede">
+                A binary sentiment classification benchmark of single sentences
+                extracted from movie reviews, part of the GLUE benchmark and
+                available via Hugging Face Datasets as <code>glue / sst2</code>.
+              </p>
+            </div>
+          </div>
+          <section className="page-section">
+            <div className="wrap">
+              <div className="stat-grid">
+                <div className="stat-box">
+                  <div className="stat-num">
+                    {MODEL_DATA.meta.trainSize.toLocaleString()}
+                  </div>
+                  <div className="stat-label">Training sentences</div>
+                </div>
+                <div className="stat-box">
+                  <div className="stat-num">
+                    {MODEL_DATA.meta.testSize.toLocaleString()}
+                  </div>
+                  <div className="stat-label">Test sentences</div>
+                </div>
+                <div className="stat-box">
+                  <div className="stat-num">
+                    {MODEL_DATA.meta.vocabSize.toLocaleString()}
+                  </div>
+                  <div className="stat-label">Vocabulary size</div>
+                </div>
+                <div className="stat-box">
+                  <div className="stat-num">1–2</div>
+                  <div className="stat-label">N-gram range</div>
+                </div>
+              </div>
+              <h2
+                className="section-title"
+                style={{ marginTop: 32 }}>
+                Class Balance
+              </h2>
+              <div className="balance-bar">
+                <div
+                  style={{
+                    width: `${classBalance.posPct}%`,
+                    background: '#2F7A4F',
+                  }}
+                />
+                <div
+                  style={{
+                    width: `${classBalance.negPct}%`,
+                    background: '#8B2635',
+                  }}
+                />
+              </div>
+              <div className="balance-legend">
+                <span>
                   <span
-                    key={i}
-                    className="sample-chip"
-                    onClick={() => useSample(s)}>
-                    Sample {i + 1}
-                  </span>
-                ))}
-              </div>
-              <button
-                className="run-btn"
-                onClick={() => runAnalysis()}
-                disabled={analyzing || !text.trim()}>
-                {analyzing ? 'Classifying...' : 'Classify Sentiment'}
-              </button>
-
-              {result && (
-                <div className="result-card">
-                  <div className="result-top">
-                    <span
-                      className="result-label"
-                      style={{
-                        color:
-                          result.label === 'Positive' ? '#2F7A4F' : '#8B2635',
-                      }}>
-                      {result.label}
-                    </span>
-                    <span className="result-prob">
-                      {(result.probability * 100).toFixed(1)}% positive
-                    </span>
-                  </div>
-                  <div className="prob-bar">
-                    <div
-                      className="prob-fill"
-                      style={{
-                        width: `${result.probability * 100}%`,
-                        background:
-                          result.label === 'Positive' ? '#2F7A4F' : '#8B2635',
-                      }}
-                    />
-                  </div>
-                  {result.hasSignal ? (
-                    <div className="feature-list">
-                      {result.topFeatures.map((f, i) => (
-                        <span
-                          key={i}
-                          className="feature-chip"
-                          style={{
-                            background: f.weight > 0 ? '#2F7A4F' : '#8B2635',
-                          }}>
-                          {f.term} {f.weight > 0 ? '+' : ''}
-                          {f.weight.toFixed(2)}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="no-signal">
-                      No matching vocabulary terms found — prediction defaults
-                      to the model's base rate.
-                    </span>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-
-          {tab === 'model' && (
-            <>
-              <div className="info-card">
-                <div className="info-card-title">Class Balance</div>
-                <div className="balance-bar">
-                  <div
-                    style={{
-                      width: `${classBalance.posPct}%`,
-                      background: '#2F7A4F',
-                    }}
+                    className="legend-dot"
+                    style={{ background: '#2F7A4F' }}
                   />
-                  <div
-                    style={{
-                      width: `${classBalance.negPct}%`,
-                      background: '#8B2635',
-                    }}
+                  Positive: {classBalance.pos.toLocaleString()} (
+                  {classBalance.posPct.toFixed(1)}%)
+                </span>
+                <span>
+                  <span
+                    className="legend-dot"
+                    style={{ background: '#8B2635' }}
                   />
-                </div>
-                <div className="balance-legend">
-                  <span>
-                    <span
-                      className="legend-dot"
-                      style={{ background: '#2F7A4F' }}
-                    />
-                    Positive {classBalance.posPct.toFixed(0)}%
-                  </span>
-                  <span>
-                    <span
-                      className="legend-dot"
-                      style={{ background: '#8B2635' }}
-                    />
-                    Negative {classBalance.negPct.toFixed(0)}%
-                  </span>
-                </div>
+                  Negative: {classBalance.neg.toLocaleString()} (
+                  {classBalance.negPct.toFixed(1)}%)
+                </span>
               </div>
+              <h2
+                className="section-title"
+                style={{ marginTop: 32 }}>
+                Sample Sentences
+              </h2>
+              <div className="sample-quote">
+                "A stunning, emotionally resonant film that lingers long after
+                the credits roll." — Positive
+              </div>
+              <div className="sample-quote">
+                "Painfully slow, poorly acted, and a complete waste of two
+                hours." — Negative
+              </div>
+            </div>
+          </section>
+        </>
+      )}
 
-              <div className="info-card">
-                <div className="info-card-title">Pipeline</div>
+      {page === 'model' && (
+        <>
+          <div className="hero">
+            <div
+              className="hero-blob"
+              style={{
+                width: 300,
+                height: 300,
+                background: '#7FBFC2',
+                top: -80,
+                left: -60,
+              }}
+            />
+            <div className="wrap hero-content">
+              <div className="eyebrow">
+                <GitBranch size={13} /> Methodology
+              </div>
+              <h1 className="page-title">How the model works</h1>
+              <p className="lede">
+                A five-stage pipeline turning raw text into a probability of
+                positive sentiment.
+              </p>
+            </div>
+          </div>
+          <section className="page-section">
+            <div className="wrap">
+              <div className="pipeline">
                 <div className="pipe-step">
                   <span className="pipe-num">01</span>
                   <div>
-                    <div className="pipe-title">Preprocessing</div>
+                    <div className="pipe-title">Text Preprocessing</div>
                     <div className="pipe-desc">
-                      Lowercase, tokenize, remove stop words.
+                      Lowercasing, word-boundary tokenization, and removal of
+                      standard English stop words to reduce noise in the feature
+                      space.
                     </div>
+                    <span className="pipe-tag">regex tokenizer</span>
                   </div>
                 </div>
                 <div className="pipe-step">
                   <span className="pipe-num">02</span>
                   <div>
-                    <div className="pipe-title">TF-IDF Vectorization</div>
-                    <div className="pipe-desc">
-                      Unigrams + bigrams, 2,500 features, L2-normalized.
+                    <div className="pipe-title">
+                      Feature Extraction — TF-IDF
                     </div>
+                    <div className="pipe-desc">
+                      Sentences are converted into sparse numeric vectors using
+                      Term Frequency–Inverse Document Frequency weighting over
+                      unigrams and bigrams, capped at 2,500 features with
+                      sublinear TF scaling and L2 normalization.
+                    </div>
+                    <span className="pipe-tag">
+                      scikit-learn TfidfVectorizer
+                    </span>
                   </div>
                 </div>
                 <div className="pipe-step">
                   <span className="pipe-num">03</span>
                   <div>
-                    <div className="pipe-title">Logistic Regression</div>
-                    <div className="pipe-desc">
-                      Linear classifier trained on TF-IDF vectors.
+                    <div className="pipe-title">
+                      Classification — Logistic Regression
                     </div>
+                    <div className="pipe-desc">
+                      A linear Logistic Regression model is trained on the
+                      TF-IDF vectors to predict the probability that a review
+                      expresses positive sentiment.
+                    </div>
+                    <span className="pipe-tag">
+                      scikit-learn LogisticRegression
+                    </span>
                   </div>
                 </div>
                 <div className="pipe-step">
                   <span className="pipe-num">04</span>
                   <div>
-                    <div className="pipe-title">On-device Inference</div>
+                    <div className="pipe-title">Evaluation</div>
                     <div className="pipe-desc">
-                      Weights exported to JavaScript for in-app prediction.
+                      The trained model is evaluated on the held-out SST-2 test
+                      split using accuracy, precision, recall, F1-score, and a
+                      confusion matrix.
                     </div>
+                    <span className="pipe-tag">sklearn.metrics</span>
+                  </div>
+                </div>
+                <div className="pipe-step">
+                  <span className="pipe-num">05</span>
+                  <div>
+                    <div className="pipe-title">Deployment</div>
+                    <div className="pipe-desc">
+                      The learned vocabulary, IDF weights, and model
+                      coefficients are exported and re-implemented in
+                      JavaScript, so the trained model runs entirely client-side
+                      for instant, offline predictions.
+                    </div>
+                    <span className="pipe-tag">in-browser inference</span>
                   </div>
                 </div>
               </div>
+            </div>
+          </section>
+        </>
+      )}
 
-              <div className="info-card">
-                <div className="info-card-title">Test Set Metrics</div>
-                <div className="metric-grid-mini">
-                  <div className="metric-mini">
-                    <div className="metric-mini-value">
-                      {(MODEL_DATA.metrics.accuracy * 100).toFixed(1)}%
-                    </div>
-                    <div className="metric-mini-label">Accuracy</div>
+      {page === 'results' && (
+        <>
+          <div className="hero">
+            <div
+              className="hero-blob"
+              style={{
+                width: 300,
+                height: 300,
+                background: '#E8A0AE',
+                top: -80,
+                right: -60,
+              }}
+            />
+            <div className="wrap hero-content">
+              <div className="eyebrow">
+                <BarChart3 size={13} /> Results
+              </div>
+              <h1 className="page-title">Model performance</h1>
+              <p className="lede">
+                Metrics computed on the SST-2 test split (
+                {MODEL_DATA.meta.testSize.toLocaleString()} sentences), unseen
+                during training.
+              </p>
+            </div>
+          </div>
+          <section className="page-section">
+            <div className="wrap">
+              <div className="metric-grid">
+                <div className="metric-card">
+                  <div
+                    className="metric-value"
+                    style={{ color: '#7FBFC2' }}>
+                    {(MODEL_DATA.metrics.accuracy * 100).toFixed(1)}%
                   </div>
-                  <div className="metric-mini">
-                    <div className="metric-mini-value">
-                      {(MODEL_DATA.metrics.f1 * 100).toFixed(1)}%
-                    </div>
-                    <div className="metric-mini-label">F1-Score</div>
-                  </div>
-                  <div className="metric-mini">
-                    <div className="metric-mini-value">
-                      {(MODEL_DATA.metrics.precision * 100).toFixed(1)}%
-                    </div>
-                    <div className="metric-mini-label">Precision</div>
-                  </div>
-                  <div className="metric-mini">
-                    <div className="metric-mini-value">
-                      {(MODEL_DATA.metrics.recall * 100).toFixed(1)}%
-                    </div>
-                    <div className="metric-mini-label">Recall</div>
-                  </div>
+                  <div className="metric-label">Accuracy</div>
                 </div>
-                <div
-                  className="info-card-title"
-                  style={{ marginTop: 4 }}>
-                  Confusion Matrix
+                <div className="metric-card">
+                  <div
+                    className="metric-value"
+                    style={{ color: '#F2C879' }}>
+                    {(MODEL_DATA.metrics.precision * 100).toFixed(1)}%
+                  </div>
+                  <div className="metric-label">Precision</div>
                 </div>
+                <div className="metric-card">
+                  <div
+                    className="metric-value"
+                    style={{ color: '#9BD6A4' }}>
+                    {(MODEL_DATA.metrics.recall * 100).toFixed(1)}%
+                  </div>
+                  <div className="metric-label">Recall</div>
+                </div>
+                <div className="metric-card">
+                  <div
+                    className="metric-value"
+                    style={{ color: '#E8A0AE' }}>
+                    {(MODEL_DATA.metrics.f1 * 100).toFixed(1)}%
+                  </div>
+                  <div className="metric-label">F1-Score</div>
+                </div>
+              </div>
+              <h2 className="section-title">Confusion Matrix</h2>
+              <div className="cm-wrap">
                 <div className="cm-grid">
                   <div />
-                  <div className="cm-label">Pred. Neg</div>
-                  <div className="cm-label">Pred. Pos</div>
-                  <div className="cm-label">Actual Neg</div>
+                  <div className="cm-label">Pred. Negative</div>
+                  <div className="cm-label">Pred. Positive</div>
+                  <div className="cm-label">Actual Negative</div>
                   <div
                     className="cm-cell"
                     style={{ background: '#D7ECE1', color: '#1E5B3A' }}>
@@ -4102,7 +4269,7 @@ export default function SentimentApp() {
                     style={{ background: '#F7E4E4', color: '#8B2635' }}>
                     {cm[0][1]}
                   </div>
-                  <div className="cm-label">Actual Pos</div>
+                  <div className="cm-label">Actual Positive</div>
                   <div
                     className="cm-cell"
                     style={{ background: '#F7E4E4', color: '#8B2635' }}>
@@ -4114,68 +4281,135 @@ export default function SentimentApp() {
                     {cm[1][1]}
                   </div>
                 </div>
+                <p className="cm-note">
+                  The diagonal cells (green) show correct predictions —{' '}
+                  {cm[0][0] + cm[1][1]} out of {cmTotal} test sentences were
+                  classified correctly.
+                </p>
               </div>
-            </>
-          )}
+              <div className="limits-box">
+                <strong>Limitations:</strong> As a linear bag-of-words model,
+                this classifier does not capture sarcasm or long-range negation.
+                Future work could compare this baseline against a fine-tuned
+                transformer such as DistilBERT trained on the same dataset.
+              </div>
+            </div>
+          </section>
+        </>
+      )}
 
-          {tab === 'about' && (
-            <>
-              <div className="info-card">
-                <div className="info-card-title">Project</div>
-                <p>
-                  Sentiment Analysis of Movie Reviews using Machine Learning — a
-                  B.Tech CSE (AI/ML) project built on the SST-2 dataset (Hugging
-                  Face Datasets, GLUE benchmark).
-                </p>
+      {page === 'demo' && (
+        <>
+          <div className="hero">
+            <div
+              className="hero-blob"
+              style={{
+                width: 300,
+                height: 300,
+                background: '#B98900',
+                top: -80,
+                left: -60,
+              }}
+            />
+            <div className="wrap hero-content">
+              <div className="eyebrow">
+                <PlayCircle size={13} /> Live Demo
               </div>
-              <div className="info-card">
-                <div className="info-card-title">Institution</div>
-                <p>
-                  Gurunanak Institute of Technology (GNIT), Kolkata — Department
-                  of Computer Science &amp; Engineering (AI/ML).
-                </p>
-              </div>
-              <div className="info-card">
-                <div className="info-card-title">Tech Stack</div>
-                <div className="badge-row">
-                  <span className="tech-badge">Python 3</span>
-                  <span className="tech-badge">Hugging Face Datasets</span>
-                  <span className="tech-badge">scikit-learn</span>
-                  <span className="tech-badge">TF-IDF</span>
-                  <span className="tech-badge">Logistic Regression</span>
-                  <span className="tech-badge">React</span>
+              <h1 className="page-title">Try the classifier</h1>
+              <p className="lede">
+                This runs the actual trained model — the same TF-IDF weights and
+                Logistic Regression coefficients learned from SST-2 — directly
+                in your browser. No server or API call involved.
+              </p>
+            </div>
+          </div>
+          <section className="page-section">
+            <div className="wrap">
+              <div className="demo-shell">
+                <textarea
+                  value={text}
+                  onChange={e => setText(e.target.value)}
+                  placeholder="Type a sentence to classify, e.g. a movie review or product opinion..."
+                />
+                <div className="demo-toolbar">
+                  <div className="sample-chips">
+                    {SAMPLE_TEXTS.map((s, i) => (
+                      <span
+                        key={i}
+                        className="sample-chip"
+                        onClick={() => useSample(s)}>
+                        Sample {i + 1}
+                      </span>
+                    ))}
+                  </div>
+                  <button
+                    className="run-btn"
+                    onClick={() => runAnalysis()}
+                    disabled={analyzing || !text.trim()}>
+                    {analyzing ? 'Classifying...' : 'Classify Sentiment'}
+                  </button>
+                </div>
+
+                {result && (
+                  <div className="result-box">
+                    <div className="result-top">
+                      <span
+                        className="result-label"
+                        style={{
+                          color:
+                            result.label === 'Positive' ? '#2F7A4F' : '#8B2635',
+                        }}>
+                        {result.label}
+                      </span>
+                      <span className="result-prob">
+                        {(result.probability * 100).toFixed(1)}% probability
+                        positive
+                      </span>
+                    </div>
+                    <div className="prob-bar">
+                      <div
+                        className="prob-fill"
+                        style={{
+                          width: `${result.probability * 100}%`,
+                          background:
+                            result.label === 'Positive' ? '#2F7A4F' : '#8B2635',
+                        }}
+                      />
+                    </div>
+                    {result.hasSignal ? (
+                      <div className="feature-list">
+                        {result.topFeatures.map((f, i) => (
+                          <span
+                            key={i}
+                            className="feature-chip"
+                            style={{
+                              background: f.weight > 0 ? '#2F7A4F' : '#8B2635',
+                            }}>
+                            {f.term} {f.weight > 0 ? '+' : ''}
+                            {f.weight.toFixed(2)}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="no-signal">
+                        No vocabulary terms from the training set were matched
+                        in this input; prediction defaults to the model's base
+                        rate.
+                      </span>
+                    )}
+                  </div>
+                )}
+                <div className="demo-note">
+                  <CheckCircle2 size={14} /> Runs entirely on-device — works
+                  offline, no data leaves your browser.
                 </div>
               </div>
-              <div className="info-card">
-                <div className="info-card-title">
-                  Limitations &amp; Future Scope
-                </div>
-                <p>
-                  As a linear bag-of-words model, this classifier does not
-                  capture sarcasm or long-range negation. Future work could
-                  compare this baseline against a fine-tuned transformer such as
-                  DistilBERT trained on the same dataset.
-                </p>
-              </div>
-            </>
-          )}
-        </div>
+            </div>
+          </section>
+        </>
+      )}
 
-        <div className="bottom-nav">
-          {TABS.map(t => {
-            const Icon = t.icon;
-            return (
-              <button
-                key={t.id}
-                className={`nav-btn ${tab === t.id ? 'active' : ''}`}
-                onClick={() => setTab(t.id)}>
-                <Icon size={20} />
-                <span>{t.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <Footer go={go} />
     </div>
   );
 }
